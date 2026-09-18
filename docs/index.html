@@ -29,7 +29,7 @@
         "@context": "https://schema.org",
         "@type": "MobileApplication",
         "name": "Pixel Fuse",
-        "description": "A falling-block puzzle game for iPhone and iPad. Clear the whole board — every level starts as a picture built from colored blocks, across 6 themed worlds, with cross and box bomb detonations and support for English, German, French, Spanish, and Chinese.",
+        "description": "A falling-block puzzle game for iPhone and iPad. Clear the whole board — every level starts as a picture built from colored blocks, across 6 themed worlds, with small strip and big board-wide bomb detonations and support for English, German, French, Spanish, and Chinese.",
         "applicationCategory": "GameApplication",
         "applicationSubCategory": "PuzzleGame",
         "operatingSystem": "iOS 18.0+",
@@ -581,8 +581,9 @@
         </p>
         <p style="margin-top: 14px;">
             The signature twist: bombs are baked into the picture itself. Detonate one
-            and it blasts a cross of neighboring blocks; four bombs in a square
-            trigger a bigger box blast. Chain them together to clear the board faster.
+            and it clears a wide strip along its own row; fuse four bombs into a
+            square and it clears several rows the full width of the board. Chain them
+            together to clear the board faster.
         </p>
 
         <div class="grid">
@@ -593,8 +594,8 @@
             </div>
             <div class="card">
                 <div class="card-dot" style="background:var(--bomb)"></div>
-                <div class="card-title">Cross &amp; Box Blasts</div>
-                <div class="card-body">A lone bomb blasts a cross of neighboring blocks. Four bombs in a square trigger a bigger box blast.</div>
+                <div class="card-title">Small &amp; Big Blasts</div>
+                <div class="card-body">A single bomb clears a wide strip along its own row. Fuse four bombs into a square and it clears several rows the full width of the board.</div>
             </div>
             <div class="card">
                 <div class="card-dot" style="background:var(--teal)"></div>
@@ -687,7 +688,7 @@
         <h2>Tips &amp; tricks</h2>
 
         <ol class="tips">
-            <li><strong>Watch how bombs are clustered.</strong> A lone bomb only blasts a cross of neighbors; grouping four into a square gets you a much bigger box blast.</li>
+            <li><strong>Watch how bombs are clustered.</strong> A lone bomb only clears a strip along its row; fusing four into a square instead clears several full-width rows.</li>
             <li><strong>Undo is for experiments, not just mistakes.</strong> Two undos per level fully restores the board, so use one to try a risky placement and see what happens.</li>
             <li><strong>A full line always clears, bomb or not.</strong> Sometimes the fastest path through a tricky board is a plain completed line, not a detonation.</li>
             <li><strong>Plan for where a piece lands, not just where you're dropping it from.</strong> Rotate before you commit — once a piece locks in, it's part of the board.</li>
@@ -724,7 +725,7 @@
                 <span>What's the difference between bomb blast types?</span>
                 <span class="faq-arrow">▶</span>
             </div>
-            <div class="faq-a">A single bomb clears a cross-shaped area around itself. Four bombs arranged in a 2×2 square trigger a bigger box blast.</div>
+            <div class="faq-a">A single bomb clears a 7-wide strip along its own row. Four bombs fused into a 2×2 square instead clear several rows, the full width of the board.</div>
         </div>
 
         <div class="faq-item">
