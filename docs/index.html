@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Fuse – Falling-Block Puzzle Game for iPhone &amp; iPad</title>
+    <meta name="description" content="Pixel Fuse is a falling-block puzzle game for iPhone and iPad. Clear the whole board across 6 themed worlds — every level starts as a picture. No ads, no accounts, no data collection.">
+    <meta name="keywords" content="Pixel Fuse, puzzle game iPhone, falling block game, bomb puzzle, brain teaser, logic puzzle, iPad puzzle, SpriteKit game, offline puzzle game">
+    <meta name="author" content="Frank Neumann">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pixel-fuse-game.fneumann.com/">
+    <meta property="og:title" content="Pixel Fuse – Falling-Block Puzzle Game">
+    <meta property="og:description" content="Drop blocks, detonate bombs, and clear the whole board — every level starts as a picture. 6 themed worlds, no ads, no accounts.">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Pixel Fuse – Falling-Block Puzzle Game">
+    <meta name="twitter:description" content="Drop blocks, detonate bombs, and clear the whole board — every level starts as a picture. 6 themed worlds, no ads, no accounts.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://pixel-fuse-game.fneumann.com/">
+
+    <!-- Structured data: App -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "MobileApplication",
+        "name": "Pixel Fuse",
+        "description": "A falling-block puzzle game for iPhone and iPad. Clear the whole board — every level starts as a picture built from colored blocks, across 6 themed worlds, with cross and box bomb detonations and support for English, German, French, Spanish, and Chinese.",
+        "applicationCategory": "GameApplication",
+        "applicationSubCategory": "PuzzleGame",
+        "operatingSystem": "iOS 18.0+",
+        "softwareVersion": "1.0",
+        "publisher": {
+            "@type": "Person",
+            "name": "Frank Neumann",
+            "email": "support@pixel-fuse-game.fneumann.com"
+        }
+    }
+    </script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:      #0a0c16;
+            --bg2:     #0e1120;
+            --bg3:     #151932;
+            --accent:  #5b8cff;
+            --accent-glow: rgba(91,140,255,0.30);
+            --text:    #eef0f7;
+            --dim:     #9aa0c0;
+            --dimmer:  #6b7094;
+            --border:  #232847;
+
+            /* a representative sample of the real in-game block tints
+               (Palette.blockTints) */
+            --orange:  #d97b29;
+            --yellow:  #f2c94c;
+            --green:   #5cb85c;
+            --teal:    #3fb8af;
+            --blue:    #4a7de0;
+            --purple:  #9b6bce;
+            --pink:    #d9739f;
+            --brown:   #8b5a2b;
+            --bomb:    #e05555;
+
+            --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --mono: "SF Mono", "Menlo", "Monaco", monospace;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        /* ── Navigation ── */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10,12,22,0.92);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        .nav-inner {
+            max-width: 980px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 56px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--text);
+            font-size: 16px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: -0.2px;
+        }
+        .nav-brand-mark {
+            display: grid;
+            gap: 2px;
+            width: 16px;
+            height: 16px;
+        }
+        .nav-brand-mark span {
+            background: var(--accent);
+            border-radius: 2px;
+            height: 4px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 26px;
+            list-style: none;
+        }
+        .nav-links a {
+            color: var(--dim);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            transition: color 0.15s;
+        }
+        .nav-links a:hover { color: var(--text); }
+        .nav-links a.active { color: var(--accent); }
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--dim);
+            font-size: 22px;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+
+        /* ── Sections ── */
+        section { padding: 88px 24px; }
+        .inner { max-width: 780px; margin: 0 auto; }
+        section:nth-of-type(even) { background: var(--bg2); }
+
+        .eyebrow {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            margin-bottom: 36px;
+        }
+
+        h3 {
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 700;
+            margin: 30px 0 10px;
+        }
+
+        p { color: var(--dim); margin-bottom: 14px; }
+        p:last-child { margin-bottom: 0; }
+        .inner > p { font-size: 16px; line-height: 1.8; }
+
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        strong { color: var(--text); font-weight: 700; }
+        code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 6px;
+        }
+
+        /* ── Hero ── */
+        #home {
+            min-height: 92vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 64px 24px;
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(ellipse 900px 500px at 50% -10%, rgba(91,140,255,0.10), transparent 60%),
+                var(--bg);
+        }
+        .hero { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; width: 100%; }
+
+        .hero-badge {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: var(--dim);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 16px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+        }
+
+        /* Row of 8 mini blocks, same visual language as the real in-game
+           falling pieces: gradient body + top gloss highlight + bottom
+           shadow (Palette.blockTints, Rendering/Palette.swift). */
+        .block-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+        .block-row .block { animation: blockPop 2.6s ease-in-out infinite; }
+        .block-row .block:nth-child(1) { background: var(--orange); animation-delay: 0.00s; }
+        .block-row .block:nth-child(2) { background: var(--yellow); animation-delay: 0.08s; }
+        .block-row .block:nth-child(3) { background: var(--green);  animation-delay: 0.16s; }
+        .block-row .block:nth-child(4) { background: var(--teal);   animation-delay: 0.24s; }
+        .block-row .block:nth-child(5) { background: var(--blue);   animation-delay: 0.32s; }
+        .block-row .block:nth-child(6) { background: var(--purple); animation-delay: 0.40s; }
+        .block-row .block:nth-child(7) { background: var(--pink);   animation-delay: 0.48s; }
+        .block-row .block:nth-child(8) { background: var(--brown);  animation-delay: 0.56s; }
+        .block {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            box-shadow:
+                inset 0 3px 6px rgba(255,255,255,0.35),
+                inset 0 -6px 10px rgba(0,0,0,0.28),
+                0 6px 14px rgba(0,0,0,0.35);
+        }
+        @keyframes blockPop {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .block-row .block { animation: none; }
+        }
+
+        .hero-title {
+            font-size: clamp(48px, 10vw, 84px);
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin-bottom: 14px;
+        }
+
+        .hero-sub {
+            font-size: clamp(15px, 2.4vw, 18px);
+            color: var(--dim);
+            font-weight: 600;
+            margin-bottom: 28px;
+        }
+
+        .hero-desc {
+            font-size: 16px;
+            color: var(--dim);
+            max-width: 460px;
+            margin: 0 auto 40px;
+            line-height: 1.85;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--accent);
+            color: #04101f;
+            padding: 15px 34px;
+            font-family: var(--font);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            text-decoration: none;
+            border-radius: 12px;
+            border: 2px solid var(--accent);
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            text-decoration: none;
+            box-shadow: 0 0 28px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 44px;
+            margin-top: 52px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .stat { text-align: center; }
+        .stat-n { font-size: 28px; color: var(--text); font-weight: 800; line-height: 1; }
+        .stat-l { font-size: 11px; color: var(--dimmer); letter-spacing: 1px; text-transform: uppercase; margin-top: 6px; }
+
+        /* ── Feature cards ── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            margin-top: 32px;
+        }
+        .card {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .card:hover { border-color: #363c66; transform: translateY(-2px); }
+        .card-dot { width: 10px; height: 10px; border-radius: 3px; margin-bottom: 14px; }
+        .card-title { color: var(--text); font-weight: 700; font-size: 14.5px; margin-bottom: 8px; }
+        .card-body { color: var(--dim); font-size: 13.5px; line-height: 1.65; }
+
+        /* ── Controls ── */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .ctrl {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .ctrl-key {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: rgba(91,140,255,0.12);
+            border: 1px solid rgba(91,140,255,0.28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+        }
+        .ctrl-title { color: var(--text); font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
+        .ctrl-body { color: var(--dim); font-size: 12.5px; line-height: 1.6; }
+
+        /* ── Stars ── */
+        .stars { display: grid; gap: 10px; margin-top: 18px; }
+        .star-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13.5px;
+        }
+        .star-row .stars-icon { color: var(--yellow); font-size: 13px; letter-spacing: 1px; flex-shrink: 0; width: 54px; }
+        .star-row span:last-child { color: var(--dim); }
+
+        /* ── Tips ── */
+        .tips { list-style: none; counter-reset: tips; margin-top: 8px; }
+        .tips li {
+            counter-increment: tips;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 15px 18px;
+            margin-bottom: 8px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            color: var(--dim);
+            line-height: 1.65;
+        }
+        .tips li::before {
+            content: counter(tips, decimal-leading-zero);
+            font-family: var(--mono);
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+            width: 20px;
+            padding-top: 2px;
+        }
+
+        /* ── FAQ ── */
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .faq-q {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            cursor: pointer;
+            background: var(--bg3);
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--text);
+            user-select: none;
+        }
+        .faq-arrow {
+            color: var(--accent);
+            font-size: 12px;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+        .faq-item.open .faq-arrow { transform: rotate(90deg); }
+        .faq-a {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.28s ease, padding 0.28s ease;
+            font-size: 13.5px;
+            color: var(--dim);
+            line-height: 1.75;
+            padding: 0 20px;
+        }
+        .faq-item.open .faq-a { max-height: 280px; padding: 16px 20px; }
+
+        /* ── Contact ── */
+        .contact-box {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 30px;
+            display: inline-block;
+            max-width: 460px;
+        }
+        .contact-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--dimmer);
+            margin-bottom: 10px;
+        }
+        .contact-email {
+            display: block;
+            color: var(--accent);
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            word-break: break-all;
+        }
+        .contact-note { font-size: 12.5px; color: var(--dim); line-height: 1.65; }
+
+        .no-cookie {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 9px 16px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--dim);
+        }
+
+        /* ── Footer ── */
+        footer {
+            background: #060710;
+            border-top: 1px solid var(--border);
+            padding: 36px 24px;
+            text-align: center;
+            font-size: 12.5px;
+            color: var(--dimmer);
+        }
+        footer a { color: var(--dimmer); }
+        footer a:hover { color: var(--dim); }
+        .footer-links { margin-bottom: 12px; }
+        .footer-links a { margin: 0 10px; }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .nav-links.open {
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 56px; left: 0; right: 0;
+                background: rgba(10,12,22,0.98);
+                border-bottom: 1px solid var(--border);
+                padding: 18px 24px 26px;
+                gap: 18px;
+                z-index: 99;
+            }
+            .nav-toggle { display: block; }
+            section { padding: 60px 18px; }
+            h2 { font-size: 22px; }
+            .hero-stats { gap: 26px; }
+            .stat-n { font-size: 22px; }
+            .contact-box { max-width: 100%; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav id="nav">
+    <div class="nav-inner">
+        <a href="#home" class="nav-brand">
+            <span class="nav-brand-mark"><span></span><span></span><span></span></span>
+            Pixel Fuse
+        </a>
+        <button class="nav-toggle" onclick="toggleNav()" aria-label="Menu">☰</button>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#about">About</a></li>
+            <li><a href="#play">How to Play</a></li>
+            <li><a href="#tips">Tips</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#privacy">Privacy</a></li>
+            <li><a href="#support">Support</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section id="home">
+    <div class="hero">
+        <div class="hero-badge">Indie puzzle game · iPhone &amp; iPad</div>
+        <div class="block-row">
+            <div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div>
+            <div class="block"></div><div class="block"></div><div class="block"></div><div class="block"></div>
+        </div>
+        <h1 class="hero-title">Pixel Fuse</h1>
+        <p class="hero-sub">Fill the line. Clear the board.</p>
+        <p class="hero-desc">
+            Every level starts as a picture built from colored blocks. Guide
+            falling pieces into place, complete a line to clear it, and
+            detonate the bombs baked into the picture for bigger blasts —
+            clear it all to win.
+        </p>
+        <!-- TODO: replace with the real App Store URL once the app listing is live -->
+        <a href="#" class="btn">Get it on the App Store</a>
+
+        <div class="hero-stats">
+            <div class="stat"><div class="stat-n">6</div><div class="stat-l">Worlds</div></div>
+            <div class="stat"><div class="stat-n">48</div><div class="stat-l">Levels</div></div>
+            <div class="stat"><div class="stat-n">5</div><div class="stat-l">Languages</div></div>
+            <div class="stat"><div class="stat-n">2</div><div class="stat-l">Blast Types</div></div>
+            <div class="stat"><div class="stat-n">0</div><div class="stat-l">Ads</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- ── About ── -->
+<section id="about">
+    <div class="inner">
+        <span class="eyebrow">About the game</span>
+        <h2>Every level starts as a picture</h2>
+        <p>
+            <strong>Pixel Fuse</strong> is a falling-block puzzle where every level starts
+            as a full picture built from colored obstacle blocks — a turtle, a whale,
+            a rocket, a Chinese character. Your job is to clear the <em>entire</em>
+            board. Guide falling pieces into place and complete a line to clear it.
+        </p>
+        <p style="margin-top: 14px;">
+            The signature twist: bombs are baked into the picture itself. Detonate one
+            and it blasts a cross of neighboring blocks; four bombs in a square
+            trigger a bigger box blast. Chain them together to clear the board faster.
+        </p>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-dot" style="background:var(--accent)"></div>
+                <div class="card-title">Drop, Complete, Clear</div>
+                <div class="card-body">Simple to learn: guide falling pieces left, right, and down, complete a line to clear it. No combos to memorize, no reflexes required.</div>
+            </div>
+            <div class="card">
+                <div class="card-dot" style="background:var(--bomb)"></div>
+                <div class="card-title">Cross &amp; Box Blasts</div>
+                <div class="card-body">A lone bomb blasts a cross of neighboring blocks. Four bombs in a square trigger a bigger box blast.</div>
+            </div>
+            <div class="card">
+                <div class="card-dot" style="background:var(--teal)"></div>
+                <div class="card-title">6 Themed Worlds</div>
+                <div class="card-body">Sea Life, Chinese Characters, Animals, Sky &amp; Space, Garden, and Celebrations &amp; Keepsakes — each with its own obstacle shapes and colors.</div>
+            </div>
+            <div class="card">
+                <div class="card-dot" style="background:var(--purple)"></div>
+                <div class="card-title">Colors Match the Picture</div>
+                <div class="card-body">Every level is tinted to match its subject — a whale level drops blue pieces, a strawberry level drops red ones.</div>
+            </div>
+            <div class="card">
+                <div class="card-dot" style="background:var(--blue)"></div>
+                <div class="card-title">Buttons or D-Pad</div>
+                <div class="card-body">Play with on-screen directional buttons or a D-pad, whichever feels more natural — switch anytime in Settings.</div>
+            </div>
+            <div class="card">
+                <div class="card-dot" style="background:var(--green)"></div>
+                <div class="card-title">No Ads, No Accounts</div>
+                <div class="card-body">No in-app purchases, no ad breaks, no sign-in, and no network access at all — everything stays on your device.</div>
+            </div>
+            <div class="card">
+                <div class="card-dot" style="background:var(--orange)"></div>
+                <div class="card-title">3-Star Rating</div>
+                <div class="card-body">Earn up to three stars per level based on how you play — clear without using undo, and reach the level's target score for all three.</div>
+            </div>
+            <div class="card">
+                <div class="card-dot" style="background:var(--pink)"></div>
+                <div class="card-title">Five Languages</div>
+                <div class="card-body">Fully playable in English, German, French, Spanish, and Chinese.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── How to Play ── -->
+<section id="play">
+    <div class="inner">
+        <span class="eyebrow">How to play</span>
+        <h2>Learn it in a minute</h2>
+
+        <h3>Objective</h3>
+        <p>Clear the whole board. Guide each falling piece left, right, and down; complete a full line to clear it, and detonate the bombs baked into the picture for bigger clears.</p>
+
+        <h3>Controls</h3>
+        <div class="controls">
+            <div class="ctrl">
+                <div class="ctrl-key">⌗</div>
+                <div>
+                    <div class="ctrl-title">On-screen buttons</div>
+                    <div class="ctrl-body">Left, right, rotate, soft drop, and hard drop as dedicated on-screen buttons — the default control scheme.</div>
+                </div>
+            </div>
+            <div class="ctrl">
+                <div class="ctrl-key">✛</div>
+                <div>
+                    <div class="ctrl-title">D-Pad</div>
+                    <div class="ctrl-body">Prefer a single directional pad instead? Switch to D-Pad mode anytime in Settings.</div>
+                </div>
+            </div>
+            <div class="ctrl">
+                <div class="ctrl-key">↺</div>
+                <div>
+                    <div class="ctrl-title">Undo</div>
+                    <div class="ctrl-body">Up to 2 undos per level. One undo fully rewinds your last move.</div>
+                </div>
+            </div>
+            <div class="ctrl">
+                <div class="ctrl-key">💣</div>
+                <div>
+                    <div class="ctrl-title">Bombs</div>
+                    <div class="ctrl-body">Baked into the picture itself. Clear them like any other block, or set them off for a bigger blast radius.</div>
+                </div>
+            </div>
+        </div>
+
+        <h3>Star rating</h3>
+        <div class="stars">
+            <div class="star-row"><span class="stars-icon">★☆☆</span><span>Clear the level.</span></div>
+            <div class="star-row"><span class="stars-icon">★★☆</span><span>Clear it without using undo.</span></div>
+            <div class="star-row"><span class="stars-icon">★★★</span><span>Clear it at or above the level's target score.</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Tips ── -->
+<section id="tips">
+    <div class="inner">
+        <span class="eyebrow">Strategy</span>
+        <h2>Tips &amp; tricks</h2>
+
+        <ol class="tips">
+            <li><strong>Watch how bombs are clustered.</strong> A lone bomb only blasts a cross of neighbors; grouping four into a square gets you a much bigger box blast.</li>
+            <li><strong>Undo is for experiments, not just mistakes.</strong> Two undos per level fully restores the board, so use one to try a risky placement and see what happens.</li>
+            <li><strong>A full line always clears, bomb or not.</strong> Sometimes the fastest path through a tricky board is a plain completed line, not a detonation.</li>
+            <li><strong>Plan for where a piece lands, not just where you're dropping it from.</strong> Rotate before you commit — once a piece locks in, it's part of the board.</li>
+            <li><strong>Not your style? Switch it up.</strong> Buttons and D-Pad controls are both free to try anytime in Settings.</li>
+            <li><strong>Save your undos for the picture's trickiest corners.</strong> A single undo can be the difference between a clean 3-star clear and starting over.</li>
+        </ol>
+    </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section id="faq">
+    <div class="inner">
+        <span class="eyebrow">Questions</span>
+        <h2>FAQ</h2>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>Is Pixel Fuse free to play?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">Check the App Store listing for the current price. There are no in-app purchases, no ads, and no subscriptions — you get the complete game with every level.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>Does Pixel Fuse collect my data?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">No. Pixel Fuse has no accounts, no analytics SDKs, no ad frameworks, and no network access of any kind — not even iCloud sync. Your progress (stars, best scores, unlocked stages) is stored locally on your device only, and never leaves it.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>What's the difference between bomb blast types?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">A single bomb clears a cross-shaped area around itself. Four bombs arranged in a 2×2 square trigger a bigger box blast.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>Can I switch between on-screen buttons and D-Pad?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">Yes — it's a toggle in Settings, and it applies the next time you're in a level.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>What happens if the board fills up?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">The level ends and you can Retry immediately or head back to Level Select — no penalty beyond starting the level over.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>Does it work on iPad?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">Yes, full iPhone and iPad support, including both iPad orientations.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>What iOS version is required?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">Pixel Fuse requires iOS 18.0 or later.</div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">
+                <span>What languages does Pixel Fuse support?</span>
+                <span class="faq-arrow">▶</span>
+            </div>
+            <div class="faq-a">English, German, French, Spanish, and Chinese. Pixel Fuse follows your device's language setting automatically.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Privacy ── -->
+<section id="privacy">
+    <div class="inner">
+        <span class="eyebrow">Legal</span>
+        <h2>Privacy Policy</h2>
+        <p><strong>Effective date: September 2026 · Published by Frank Neumann</strong></p>
+
+        <h3>What we collect</h3>
+        <p>Nothing. Pixel Fuse has no user accounts, no login, and no registration of any kind. The app includes no analytics SDKs, no advertising frameworks, no crash reporters, and no third-party tracking code — only first-party Apple frameworks (SpriteKit, SwiftUI, Foundation). Pixel Fuse makes no network requests of any kind, and has no backend server.</p>
+
+        <h3>Your game progress</h3>
+        <p>Which levels you've cleared, your stars, your best scores, and your settings are stored locally on your device only, using Apple's standard <code>UserDefaults</code> storage. This data never leaves your device — it isn't synced anywhere, and it's never transmitted to the developer or any third party.</p>
+
+        <h3>This website</h3>
+        <p>This page uses no cookies, no tracking pixels, and no third-party scripts. No personal data is collected by visiting it.</p>
+
+        <h3>Contact</h3>
+        <p>Questions about privacy? Email <a href="mailto:support@pixel-fuse-game.fneumann.com">support@pixel-fuse-game.fneumann.com</a> — we'll respond promptly.</p>
+    </div>
+</section>
+
+<!-- ── Support ── -->
+<section id="support">
+    <div class="inner">
+        <span class="eyebrow">Get help</span>
+        <h2>Support</h2>
+        <p>
+            Found a bug? Stuck on a level that seems impossible? Got a question not
+            answered above? Pixel Fuse is a small indie project — every message gets
+            read, and your reports genuinely shape what gets fixed next.
+        </p>
+
+        <div class="contact-box" style="margin-top: 24px;">
+            <div class="contact-label">Contact</div>
+            <a href="mailto:support@pixel-fuse-game.fneumann.com" class="contact-email">support@pixel-fuse-game.fneumann.com</a>
+            <p class="contact-note">
+                When reporting a bug, please include your <strong>iOS version</strong>,
+                <strong>device model</strong>, and the <strong>level number</strong> you were
+                on (shown top-right during play, e.g. "2-3"). A description of what
+                happened — and what you expected — helps a lot. Screenshots are
+                always welcome.
+            </p>
+        </div>
+
+        <div class="no-cookie">
+            <span>🔒</span>
+            <span>This website uses no cookies and collects no personal data.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+    <div class="footer-links">
+        <a href="#about">About</a>
+        <a href="#play">How to Play</a>
+        <a href="#tips">Tips</a>
+        <a href="#faq">FAQ</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#support">Contact</a>
+    </div>
+    <p>&copy; 2026 Frank Neumann · All rights reserved</p>
+    <p style="margin-top: 8px; font-size: 11px; color: #3a3f5c;">Pixel Fuse is an original falling-block puzzle game; it is not affiliated with or endorsed by any specific existing title or publisher.</p>
+</footer>
+
+<script>
+    // Mobile nav
+    function toggleNav() {
+        document.getElementById('navLinks').classList.toggle('open');
+    }
+    document.querySelectorAll('#navLinks a').forEach(a =>
+        a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'))
+    );
+
+    // FAQ accordion
+    function toggleFaq(el) {
+        const item = el.parentElement;
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!wasOpen) item.classList.add('open');
+    }
+
+    // Active nav link tracking
+    const allSections = document.querySelectorAll('section[id]');
+    const allNavLinks = document.querySelectorAll('#navLinks a');
+    allSections.forEach(s => new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                const id = e.target.id;
+                allNavLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+            }
+        });
+    }, { rootMargin: '-35% 0px -60% 0px' }).observe(s));
+</script>
+
+</body>
+</html>
